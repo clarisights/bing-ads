@@ -20,6 +20,13 @@ module Bing
             super("can not #{operation} more than #{limit} #{type.to_s.humanize.downcase.pluralize} in a single call")
           end
         end
+
+        # Bing::Ads::API::Errors::RateLimitError
+        class RateLimitError < RuntimeError
+          def initialize(message = "Rate limit exceeded. Please try again later.")
+            super(message)
+          end
+        end
       end
     end
   end
