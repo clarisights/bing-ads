@@ -121,6 +121,9 @@ module Bing
                  fault_detail[key][:errors][:ad_api_error][:error_code] == 'AuthenticationTokenExpired'
                 raise Bing::Ads::API::Errors::AuthenticationTokenExpired,
                       'renew authentication token or obtain a new one.'
+              elsif fault_detail.dig(key, :errors, :ad_api_error, :error_code) == 'CallRateExceeded'
+                raise Bing::Ads::API::Errors::RateLimitError,
+                      'Rate limit exceeded. Please try again later.'
               else
                 raise Bing::Ads::API::Errors::UnhandledSOAPFault,
                       "SOAP error (#{fault_detail[key]}) while calling #{operation}."
