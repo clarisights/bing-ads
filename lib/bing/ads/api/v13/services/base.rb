@@ -81,6 +81,7 @@ module Bing
                   retry
                 else
                   raise
+                end
               rescue
                 if retries_made < retry_attempts
                   sleep(2**retries_made)
