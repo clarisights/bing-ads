@@ -73,6 +73,14 @@ module Bing
               rescue Savon::InvalidResponseError => error
                 # TODO better handling
                 raise
+              rescue Bing::Ads::API::Errors::RateLimitError => error
+                if retries_made < retry_attempts
+                  # https://learn.microsoft.com/en-us/advertising/guides/handle-service-errors-exceptions?view=bingads-13#code-117
+                  sleep(60 + rand(180))
+                  retries_made += 1
+                  retry
+                else
+                  raise
               rescue
                 if retries_made < retry_attempts
                   sleep(2**retries_made)
