@@ -1,5 +1,5 @@
 module Bing
   module Ads
-    VERSION = '13.0.1'.freeze
+    VERSION = '13.0.2'.freeze
   end
 end
