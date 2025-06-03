@@ -47,6 +47,7 @@ module Bing
             def call(operation, payload)
               retries_made = 0
               raise 'You must provide an operation' if operation.nil?
+
               begin
                 response = soap_client.call(operation: operation.to_sym, payload: payload)
                 return response.hash
@@ -73,24 +74,33 @@ module Bing
               rescue Savon::InvalidResponseError => error
                 # TODO better handling
                 raise
-              rescue Bing::Ads::API::Errors::RateLimitError => error
+              rescue StandardError => error
                 if retries_made < retry_attempts
-                  # https://learn.microsoft.com/en-us/advertising/guides/handle-service-errors-exceptions?view=bingads-13#code-117
-                  sleep(60 + rand(180))
-                  retries_made += 1
-                  retry
-                else
-                  raise
-                end
-              rescue
-                if retries_made < retry_attempts
-                  sleep(2**retries_made)
+                  handle_rate_limit_retry(error, retries_made)
                   retries_made += 1
                   retry
                 else
                   raise
                 end
               end
+            end
+
+            # Handles the rate limit retry for the API calls.
+            #
+            # @param error - The error object
+            # @param retries_made - The number of retries made so far
+            def handle_rate_limit_retry(error, retries_made)
+              sleep_duration = case error
+                when Bing::Ads::API::Errors::BulkApiRateLimitError
+                  # https://learn.microsoft.com/en-us/advertising/guides/operation-error-codes?view=bingads-13
+                  900 + rand(180) # 15-18 minutes
+                when Bing::Ads::API::Errors::RateLimitError
+                  # https://learn.microsoft.com/en-us/advertising/guides/handle-service-errors-exceptions?view=bingads-13#code-117
+                  60 + rand(180)
+                else
+                  2**retries_made
+                end
+              sleep(sleep_duration)
             end
 
             # Extracts the actual response from the entire response hash.
@@ -132,6 +142,9 @@ module Bing
                       'renew authentication token or obtain a new one.'
               elsif fault_detail.dig(key, :errors, :ad_api_error, :error_code) == 'CallRateExceeded'
                 raise Bing::Ads::API::Errors::RateLimitError,
+                      'Rate limit exceeded. Please try again later.'
+              elsif fault_detail.dig(key, :operation_errors, :operation_error, :error_code) == 'BulkServiceNoMoreCallsPermittedForTheTimePeriod'
+                raise Bing::Ads::API::Errors::BulkApiRateLimitError,
                       'Rate limit exceeded. Please try again later.'
               else
                 raise Bing::Ads::API::Errors::UnhandledSOAPFault,
