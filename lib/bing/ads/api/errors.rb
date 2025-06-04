@@ -27,6 +27,13 @@ module Bing
             super(message)
           end
         end
+
+        # Bing::Ads::API::Errors::RateLimitError
+        class BulkApiRateLimitError < RuntimeError
+          def initialize(message = "Bulk API Rate limit exceeded. Please try again later.")
+            super(message)
+          end
+        end
       end
     end
   end
