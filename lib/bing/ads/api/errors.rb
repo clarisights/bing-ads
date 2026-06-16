@@ -34,6 +34,9 @@ module Bing
             super(message)
           end
         end
+
+        # Bing::Ads::API::Errors::AccountNotAuthorized
+        class AccountNotAuthorized < RuntimeError; end;
       end
     end
   end

@@ -146,6 +146,10 @@ module Bing
               elsif fault_detail.dig(key, :operation_errors, :operation_error, :error_code) == 'BulkServiceNoMoreCallsPermittedForTheTimePeriod'
                 raise Bing::Ads::API::Errors::BulkApiRateLimitError,
                       'Rate limit exceeded. Please try again later.'
+              elsif fault_detail.dig(key, :operation_errors, :operation_error, :error_code) == 'AccountNotAuthorized'
+                raise Bing::Ads::API::Errors::AccountNotAuthorized,
+                      "Insufficient privileges to access one or more accounts in the report "\
+                      "request while calling #{operation}."
               else
                 raise Bing::Ads::API::Errors::UnhandledSOAPFault,
                       "SOAP error (#{fault_detail[key]}) while calling #{operation}."
