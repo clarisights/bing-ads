@@ -143,6 +143,9 @@ module Bing
               elsif fault_detail.dig(key, :errors, :ad_api_error, :error_code) == 'CallRateExceeded'
                 raise Bing::Ads::API::Errors::RateLimitError,
                       'Rate limit exceeded. Please try again later.'
+              elsif fault_detail.dig(key, :errors, :ad_api_error, :error_code) == 'UserIsNotAuthorized'
+                raise Bing::Ads::API::Errors::UserIsNotAuthorized,
+                      "User is not authorized to perform this operation while calling #{operation}."
               elsif fault_detail.dig(key, :operation_errors, :operation_error, :error_code) == 'BulkServiceNoMoreCallsPermittedForTheTimePeriod'
                 raise Bing::Ads::API::Errors::BulkApiRateLimitError,
                       'Rate limit exceeded. Please try again later.'
